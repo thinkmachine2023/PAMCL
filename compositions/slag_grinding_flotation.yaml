@@ -1,0 +1,109 @@
+# Composition Manifest v2 — Slag Grinding-Flotation Plant
+# 渣选磨浮全流程控制配置
+
+apiVersion: pamcl/v2
+kind: Composition
+metadata:
+  name: slag-grinding-flotation
+  version: "2.0.0"
+  description: "Copper slag grinding-flotation plant: Coordinator + Grinding + Flotation"
+
+# ── Agent Registration ──────────────────────────────────────
+agents:
+  - id: coordinator
+    role: coordinator
+    class: piccs_sf_simulator.agents.coordinator_agent.CoordinatorAgent
+    config:
+      target_feed_rate: 66.0
+      ramp_rate_tph_per_min: 0.05
+
+  - id: grinding
+    role: equipment
+    class: piccs_sf_simulator.agents.grinding_agent.GrindingAgent
+    config:
+      feed_target_tph: 66.0
+      nominal_water_sump: 25.2
+      p80_setpoint: 65.0
+
+  - id: flotation
+    role: equipment
+    class: piccs_sf_simulator.agents.flotation_agent.FlotationAgent
+    config:
+      nominal_collector_g_min: 30.0
+      nominal_frother_g_min: 15.0
+      reagent_multiplier: 1.0
+
+# ── Constraint Rules (v2: generic, variable-based) ─────────
+constraints:
+  warmup_steps: 60    # 30-min warmup period (60 × 30s)
+
+  rules:
+    # Product quality
+    - id: p80_upper
+      variable: P80
+      type: max
+      soft_limit: 67.0
+      hard_limit: 72.0
+
+    # Grinding
+    - id: mill_power
+      variable: mill_power_kW
+      type: max
+      soft_limit: 480.0
+      hard_limit: 495.0
+
+    - id: circ_load
+      variable: circ_load_ratio
+      type: max
+      soft_limit: 2.5
+
+    # Sump level
+    - id: sump_level
+      variable: sump_level
+      type: range
+      min: 0.8
+      max: 3.0
+
+    # Flotation (warmup exempt — recovery is undefined during cold start)
+    - id: recovery_lower
+      variable: recovery
+      type: min
+      soft_limit: 0.765
+      warmup_exempt: true
+
+    - id: tailing_cu
+      variable: tailing_grade_pct
+      type: max
+      soft_limit: 0.85
+      warmup_exempt: true
+
+# ── Control Variable Physical Limits ───────────────────────
+control_limits:
+  ore_feed_rate:             { min: 45.0, max: 70.0 }
+  water_mill:                { min: 5.0,  max: 60.0 }
+  water_sump:                { min: 5.0,  max: 40.0 }
+  pump_freq:                 { min: 25.0, max: 55.0 }
+  collector_dose_rougher:    { min: 0.0,  max: 60.0 }
+  frother_dose_rougher:      { min: 0.0,  max: 30.0 }
+  collector_dose_scavenger:  { min: 0.0,  max: 40.0 }
+  Jg_rougher:                { min: 0.3,  max: 2.5 }
+  Jg_scavenger:              { min: 0.3,  max: 2.0 }
+  Jg_cleaner:                { min: 0.3,  max: 1.5 }
+
+# ── Scheduling Configuration ──────────────────────────────
+scheduling:
+  control_interval_s: 30.0
+  coordinator_interval_steps: 10    # coordinator decides every 10 sub-steps = 5 min
+  episode_length_min: 240.0
+
+  coordinator_id: coordinator
+  sub_agents: [grinding, flotation]
+
+  # Coordinator → sub-agent setpoint dispatch
+  setpoint_dispatch:
+    grinding:
+      feed_rate_target: feed_target_tph
+      p80_setpoint: p80_setpoint
+      water_sump_nominal: nominal_water_sump
+    flotation:
+      reagent_multiplier: reagent_multiplier
