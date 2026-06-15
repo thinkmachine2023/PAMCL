@@ -10,6 +10,8 @@ A vendor-agnostic framework for composing, scheduling, and auditing multi-agent 
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)
 ![Tests passing](https://img.shields.io/badge/tests-passing-brightgreen.svg)
 
+[🌐 www.thinkmachine.work](https://www.thinkmachine.work)
+
 </div>
 
 ---
@@ -345,6 +347,11 @@ See [CHANGELOG.md](CHANGELOG.md) for recent refinements (v0.4.0) and [FIXES_FROM
 ## License
 
 Internal project — PICCS-SF research codebase.
+
+## Links
+
+- **Website**: [www.thinkmachine.work](https://www.thinkmachine.work)
+- **GitHub**: [github.com/thinkmachine2023/PAMCL](https://github.com/thinkmachine2023/PAMCL)
 
 ## Contributing / History
 
