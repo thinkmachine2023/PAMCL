@@ -346,7 +346,7 @@ See [CHANGELOG.md](CHANGELOG.md) for recent refinements (v0.4.0) and [FIXES_FROM
 
 ## License
 
-Internal project — PICCS-SF research codebase.
+[MIT License](LICENSE) — free to use, modify, and distribute.
 
 ## Links
 
